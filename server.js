@@ -30,17 +30,19 @@ app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
+// request logger
+app.use(function (req, res, next) {
+  var log = req.method + " " + req.path + " - " + req.ip;
+  console.log(log);
+  next();
+});
+
 // serve public as static files
 app.use("/public", express.static(`${process.cwd()}/public`));
 
 // serve home page
 app.get("/", function (req, res) {
   res.sendFile(process.cwd() + "/views/index.html");
-});
-
-// Your first API endpoint
-app.get("/api/hello", function (req, res) {
-  res.json({ greeting: "hello API" });
 });
 
 // Setup mongoose schema and model
