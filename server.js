@@ -65,7 +65,7 @@ function makeid(length) {
   return result;
 }
 
-// URL shortener API
+// url shortener api
 app.post("/api/shorturl", function (req, res) {
   const newUrl = new ShortUrl({
     originalUrl: req.body.url,
@@ -78,6 +78,17 @@ app.post("/api/shorturl", function (req, res) {
       original_url: req.body.url,
       short_url: newUrl.shortUrl,
     });
+  });
+});
+
+// redirect shorturl api
+app.get("/api/shorturl/:short_url", function (req, res) {
+  const query = ShortUrl.findOne({ shortUrl: req.params.short_url });
+  query.select("originalUrl");
+
+  query.exec(function (err, shorturl) {
+    if (err) return console.error(err);
+    res.redirect(shorturl.originalUrl);
   });
 });
 
