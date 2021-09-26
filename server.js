@@ -4,6 +4,7 @@ const express = require("express");
 const cors = require("cors");
 const app = express();
 const bodyParser = require("body-parser");
+const dns = require('dns');
 
 // setup mongoose
 const mongoose = require("mongoose");
@@ -67,28 +68,48 @@ function makeid(length) {
 
 // url shortener api
 app.post("/api/shorturl", function (req, res) {
-  const newUrl = new ShortUrl({
-    originalUrl: req.body.url,
-    shortUrl: makeid(8),
-  });
+  const urlParam = req.body.url;
+  const lookupParam = urlParam.replace(/^https?:\/\//i, "");
+  // const options = { all: true };
 
-  newUrl.save(function (err, newUrl) {
-    if (err) return console.error(err);
-    res.json({
-      original_url: req.body.url,
-      short_url: newUrl.shortUrl,
-    });
+  dns.lookup(lookupParam, (err, addresses) => {
+    if (err) {
+      res.json({ error: 'invalid url' });
+    } else {
+      const newUrl = new ShortUrl({
+        originalUrl: urlParam,
+        shortUrl: makeid(8),
+      });
+
+      newUrl.save(function (err, newUrl) {
+        if (err) return console.error(err);
+        res.json({
+          original_url: newUrl.originalUrl,
+          short_url: newUrl.shortUrl,
+        });
+      });
+    }
   });
 });
 
 // redirect shorturl api
 app.get("/api/shorturl/:short_url", function (req, res) {
-  const query = ShortUrl.findOne({ shortUrl: req.params.short_url });
+  const shorturlParam = req.params.short_url;
+  
+  const query = ShortUrl.findOne({ shortUrl: shorturlParam });
   query.select("originalUrl");
 
   query.exec(function (err, shorturl) {
     if (err) return console.error(err);
-    res.redirect(shorturl.originalUrl);
+
+    if (!shorturl) {
+      res.json({ error: 'url not found' });
+    } else {
+      const redirectUrl = shorturl.originalUrl.match(/^https?:\/\//i) ?
+      shorturl.originalUrl :
+      "https://" + shorturl.originalUrl;
+      res.redirect(301, redirectUrl);
+    }
   });
 });
 
