@@ -14,7 +14,7 @@ const { Schema } = mongoose;
 const port = process.env.PORT || 3000;
 
 // init mongodb connection
-mongoose.connect(process.env["MONGO_URI"], {
+mongoose.connect(process.env["DATABASE_URL"], {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
