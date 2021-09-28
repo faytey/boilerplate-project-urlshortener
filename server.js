@@ -69,8 +69,8 @@ function makeid(length) {
 // url shortener api
 app.post("/api/shorturl", function (req, res) {
   const urlParam = req.body.url;
-  const lookupParam = urlParam.replace(/^https?:\/\//i, "");
-  // const options = { all: true };
+  const urlDomain = urlParam.match(/^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)/igm);
+  const lookupParam = urlDomain[0].replace(/^https?:\/\//i, "");
 
   dns.lookup(lookupParam, (err, addresses) => {
     if (err) {
